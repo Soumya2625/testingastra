@@ -1,0 +1,103 @@
+title = "Astra Defense secret rules"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "aws_access_key_id"
+description = "AWS access key ID"
+regex = '''\b(AKIA|ASIA)[A-Z0-9]{16}\b'''
+secretGroup = 0
+keywords = ["AKIA", "ASIA"]
+
+[[rules]]
+id = "aws_secret_access_key"
+description = "AWS secret access key"
+regex = '''(?i)(?:aws_secret_access_key|secret_access_key)\s*[:=]\s*['"]?([A-Za-z0-9/+=]{40})'''
+secretGroup = 1
+keywords = ["aws_secret_access_key", "secret_access_key"]
+
+[[rules]]
+id = "azure_client_secret"
+description = "Azure client secret"
+regex = '''(?i)(?:client_secret|azure_client_secret)\s*[:=]\s*['"]?([A-Za-z0-9~._-]{20,})'''
+secretGroup = 1
+keywords = ["client_secret", "azure_client_secret"]
+
+[[rules]]
+id = "azure_storage_key"
+description = "Azure storage account key"
+regex = '''(?i)(?:AccountKey|azure_storage_key)\s*[:=]\s*['"]?([A-Za-z0-9+/=]{40,})'''
+secretGroup = 1
+keywords = ["AccountKey", "azure_storage_key"]
+
+[[rules]]
+id = "gcp_service_account"
+description = "GCP service account credential"
+regex = '''(?s)"type"\s*:\s*"service_account".{0,500}"private_key"\s*:\s*"([^"]{30,})"'''
+secretGroup = 1
+keywords = ["service_account", "private_key"]
+
+[[rules]]
+id = "google_api_key"
+description = "Google API key"
+regex = '''\b(AIza[0-9A-Za-z_-]{30,})\b'''
+secretGroup = 1
+keywords = ["AIza"]
+
+[[rules]]
+id = "github_token"
+description = "GitHub personal access token"
+regex = '''\b(gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b'''
+secretGroup = 1
+keywords = ["ghp_", "gho_", "github_pat_"]
+
+[[rules]]
+id = "gitlab_token"
+description = "GitLab access token"
+regex = '''\b(glpat-[A-Za-z0-9_-]{20,})\b'''
+secretGroup = 1
+keywords = ["glpat-"]
+
+[[rules]]
+id = "ssh_private_key"
+description = "Private SSH key"
+regex = '''-----BEGIN OPENSSH PRIVATE KEY-----'''
+secretGroup = 0
+keywords = ["BEGIN OPENSSH PRIVATE KEY"]
+
+[[rules]]
+id = "private_key"
+description = "RSA/EC private key"
+regex = '''-----BEGIN (?:RSA |EC )?PRIVATE KEY-----'''
+secretGroup = 0
+keywords = ["BEGIN RSA PRIVATE KEY", "BEGIN EC PRIVATE KEY", "BEGIN PRIVATE KEY"]
+
+[[rules]]
+id = "database_url"
+description = "Database connection string with credentials"
+regex = '''(?i)(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?)://[^:\s]+:([^@\s]{4,})@'''
+secretGroup = 1
+keywords = ["postgres://", "postgresql://", "mysql://", "mongodb://"]
+
+[[rules]]
+id = "jwt_signing_secret"
+description = "JWT signing secret"
+regex = '''(?i)(?:jwt[_-]?(?:signing[_-]?)?secret|jwt[_-]?secret)\s*[:=]\s*['"]?([A-Za-z0-9_./+=-]{16,})'''
+secretGroup = 1
+keywords = ["jwt_secret", "jwt-signing-secret"]
+
+[[rules]]
+id = "hardcoded_credential"
+description = "Hardcoded API token or password"
+regex = '''(?i)(?:api[_-]?token|api[_-]?key|password|passwd)\s*[:=]\s*['"]([^'"\s]{8,})['"]'''
+secretGroup = 1
+keywords = ["api_token", "api_key", "password", "passwd"]
+
+[[rules]]
+id = "generic_high_entropy"
+description = "Generic high-entropy secret"
+regex = '''(?i)(?:secret|token|key|password)\s*[:=]\s*['"]([A-Za-z0-9+/=_-]{24,})['"]'''
+secretGroup = 1
+entropy = 3.5
+keywords = ["secret", "token", "password"]

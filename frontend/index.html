@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Astra Defense · Code Security</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script defer src="/assets/app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Astra Defense home"><span class="brand-mark">A</span><span>Astra<span class="brand-muted">Defense</span></span></a>
+      <div class="workspace-label">SECURITY WORKSPACE</div>
+      <nav aria-label="Main navigation"><a class="nav-item active" href="#scanning"><span class="nav-icon">⌕</span>Code Scanning</a></nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span> Scanning engines <span class="muted">Docker isolated</span></div>
+    </aside>
+    <main>
+      <header class="topbar"><div><div class="eyebrow">APPLICATION SECURITY</div><h1>Code Scanning</h1></div><div class="topbar-right"><span id="gemini-status" class="pill">Checking Gemini…</span></div></header>
+      <section id="scanning" class="page">
+        <div class="intro"><div><h2>Security overview</h2><p>Scan connected repositories for secrets, infrastructure risks, and code vulnerabilities.</p></div><div class="toolbar-actions"><button id="download-report" class="button secondary" disabled>Download report</button><button id="refresh-scans" class="button secondary">Refresh history</button></div></div>
+        <div class="connection panel">
+          <div class="panel-heading"><div><h3>Repository</h3><p>GitHub.com and GitLab.com HTTPS repositories</p></div><span class="subtle">Tokens are used only for the archive request</span></div>
+          <div class="repo-fields">
+            <label class="field grow"><span>Repository URL</span><input id="repository" type="url" placeholder="https://github.com/org/repository" autocomplete="url"></label>
+            <label class="field branch"><span>Branch</span><input id="branch" type="text" value="main" autocomplete="off"></label>
+            <label class="field token"><span>Repository token <i>optional</i></span><input id="repo-token" type="password" placeholder="Private repo access" autocomplete="off"></label>
+          </div>
+        </div>
+        <div class="scanner-grid">
+          <label class="scanner-card panel"><span class="scanner-icon">◈</span><span class="scanner-info"><b>Secret Detection</b><small>14 rules · Gitleaks</small></span><input class="toggle" type="checkbox" data-scanner="secrets" checked aria-label="Enable Secret Detection"></label>
+          <label class="scanner-card panel"><span class="scanner-icon">▦</span><span class="scanner-info"><b>IaC Misconfiguration</b><small>11 categories · Checkov</small></span><input class="toggle" type="checkbox" data-scanner="iac" checked aria-label="Enable IaC Misconfiguration"></label>
+          <label class="scanner-card panel"><span class="scanner-icon">⌘</span><span class="scanner-info"><b>Static Analysis (SAST)</b><small>11 categories · Semgrep</small></span><input class="toggle" type="checkbox" data-scanner="sast" checked aria-label="Enable Static Analysis"></label>
+        </div>
+        <div class="toolbar"><button id="start-scan" class="button primary"><span>▶</span> Start Security Scan</button><span class="subtle">Repository code is never built or executed.</span><span id="scan-message" role="status" class="message"></span></div>
+        <section id="active-scan" class="panel active-scan hidden"><div class="scan-head"><div><h3 id="active-title">Scan in progress</h3><p id="active-meta"></p></div><button id="cancel-scan" class="button danger small">Cancel scan</button></div><div id="scanner-progress" class="progress-list"></div></section>
+        <section class="dashboard">
+          <div class="stats">
+            <article class="stat panel"><span>Total findings</span><b id="stat-total">—</b></article>
+            <article class="stat panel"><span>Critical</span><b id="stat-critical" class="sev-critical">—</b></article>
+            <article class="stat panel"><span>High</span><b id="stat-high" class="sev-high">—</b></article>
+            <article class="stat panel"><span>Medium</span><b id="stat-medium" class="sev-medium">—</b></article>
+            <article class="stat panel"><span>Low</span><b id="stat-low" class="sev-low">—</b></article>
+            <article class="stat panel"><span>Scanned files</span><b id="stat-files">—</b></article>
+          </div>
+          <div class="results panel">
+            <div class="results-header"><div><h3>Findings</h3><p id="result-context">Select a scan to view findings</p></div><div class="filters">
+              <select id="filter-repository" aria-label="Filter repository"><option value="">All repositories</option></select>
+              <select id="filter-severity" aria-label="Filter severity"><option value="">All severities</option><option>critical</option><option>high</option><option>medium</option><option>low</option></select>
+              <select id="filter-scanner" aria-label="Filter scanner"><option value="">All scanners</option><option value="secrets">Secrets</option><option value="iac">IaC</option><option value="sast">SAST</option></select>
+              <select id="filter-status" aria-label="Filter status"><option value="">All statuses</option><option value="open">Open</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option><option value="accepted_risk">Accepted risk</option></select>
+              <input id="filter-file" type="search" aria-label="Filter file path" placeholder="Filter file…">
+            </div></div>
+            <div id="finding-list" class="finding-list empty">No scan selected yet.</div>
+            <div id="duration" class="duration"></div>
+          </div>
+          <div class="history panel"><div class="panel-heading"><div><h3>Recent scans</h3><p>Click a scan to inspect its results</p></div></div><div id="scan-history" class="history-list"><span class="empty">No scans yet.</span></div></div>
+        </section>
+      </section>
+    </main>
+    <aside id="assistant" class="assistant panel">
+      <button id="assistant-toggle" class="assistant-title" aria-expanded="true"><span><span class="gemini-star">✦</span> Gemini Security Assistant</span><span id="assistant-chevron">−</span></button>
+      <div id="assistant-body" class="assistant-body">
+        <div id="chat-messages" class="chat-messages"><div class="chat-empty"><span class="gemini-star large">✦</span><b>Ask about your scan</b><p>Get evidence-based explanations and remediation guidance from the selected scan.</p><button class="suggestion">Which findings should I fix first?</button><button class="suggestion">Summarize this repository's security posture</button></div></div>
+        <form id="chat-form" class="chat-form"><textarea id="chat-input" rows="2" placeholder="Ask a security question…" aria-label="Ask the security assistant"></textarea><button class="send-button" type="submit" aria-label="Send message">↑</button></form>
+        <p class="chat-note">AI guidance is advisory. Findings come from scanner output; no changes are applied.</p>
+      </div>
+    </aside>
+  </div>
+  <dialog id="finding-dialog" class="finding-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><div id="finding-detail"></div></dialog>
+</body>
+</html>

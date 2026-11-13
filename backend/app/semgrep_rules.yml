@@ -1,0 +1,142 @@
+rules:
+  - id: astra-sql-injection-taint
+    languages: [python]
+    mode: taint
+    message: "Untrusted request data reaches a SQL query sink."
+    severity: ERROR
+    metadata: {cwe: ["CWE-89"], category: security}
+    pattern-sources:
+      - pattern: request.args.get(...)
+      - pattern: request.form.get(...)
+      - pattern: input(...)
+    pattern-sinks:
+      - pattern: $DB.execute($QUERY, ...)
+      - pattern: $DB.cursor.execute($QUERY, ...)
+      - pattern: $DB.query($QUERY, ...)
+  - id: astra-command-injection-taint
+    languages: [python]
+    mode: taint
+    message: "Untrusted request data reaches a shell command sink."
+    severity: ERROR
+    metadata: {cwe: ["CWE-78"], category: security}
+    pattern-sources:
+      - pattern: request.args.get(...)
+      - pattern: request.form.get(...)
+      - pattern: input(...)
+    pattern-sinks:
+      - pattern: os.system($COMMAND)
+      - pattern: subprocess.run($COMMAND, shell=True, ...)
+      - pattern: subprocess.call($COMMAND, shell=True, ...)
+  - id: astra-sql-injection
+    languages: [python, javascript, typescript, go]
+    message: "Potential SQL injection: untrusted input may reach a query sink."
+    severity: ERROR
+    metadata: {cwe: ["CWE-89"], category: security}
+    patterns:
+      - pattern-either:
+          - pattern: $DB.execute($QUERY + $INPUT, ...)
+          - pattern: $DB.query($QUERY + $INPUT, ...)
+          - pattern: $DB.query(`...${$INPUT}...`)
+          - pattern: $DB.execute(f"...{$INPUT}...")
+          - pattern: $DB.Query($QUERY + $INPUT)
+          - pattern: $DB.Exec($QUERY + $INPUT)
+  - id: astra-command-injection
+    languages: [python, javascript, typescript, go]
+    message: "Potential command injection: dynamic data is passed to a shell command."
+    severity: ERROR
+    metadata: {cwe: ["CWE-78"], category: security}
+    pattern-either:
+      - pattern: subprocess.$FUNC($CMD, shell=True, ...)
+      - pattern: child_process.exec($CMD + $INPUT, ...)
+      - pattern: exec($CMD + $INPUT)
+      - pattern: os.system($CMD + $INPUT)
+      - pattern: exec.Command($CMD + $INPUT, ...)
+  - id: astra-xss
+    languages: [javascript, typescript]
+    message: "Potential XSS: untrusted data is written to an HTML interpretation sink."
+    severity: ERROR
+    metadata: {cwe: ["CWE-79"], category: security}
+    pattern-either:
+      - pattern: $EL.innerHTML = $INPUT
+      - pattern: document.write($INPUT)
+      - pattern: res.send($INPUT)
+  - id: astra-path-traversal
+    languages: [python, javascript, typescript, go]
+    message: "Potential path traversal: externally supplied data reaches a file path."
+    severity: ERROR
+    metadata: {cwe: ["CWE-22"], category: security}
+    pattern-either:
+      - pattern: open($BASE + $INPUT, ...)
+      - pattern: fs.readFile($BASE + $INPUT, ...)
+      - pattern: fs.readFileSync($BASE + $INPUT, ...)
+      - pattern: os.Open($BASE + $INPUT)
+  - id: astra-ssrf
+    languages: [python, javascript, typescript, go]
+    message: "Potential SSRF: a request target is constructed from dynamic data."
+    severity: ERROR
+    metadata: {cwe: ["CWE-918"], category: security}
+    pattern-either:
+      - pattern: requests.get($URL + $INPUT, ...)
+      - pattern: fetch($URL + $INPUT, ...)
+      - pattern: axios.$METHOD($URL + $INPUT, ...)
+      - pattern: http.Get($URL + $INPUT)
+  - id: astra-insecure-deserialization
+    languages: [python, javascript, typescript, go]
+    message: Potential insecure deserialization of untrusted data.
+    severity: ERROR
+    metadata: {cwe: ["CWE-502"], category: security}
+    pattern-either:
+      - pattern: pickle.loads($INPUT)
+      - pattern: yaml.load($INPUT, ...)
+      - pattern: yaml.load($INPUT)
+      - pattern: unserialize($INPUT)
+      - pattern: gob.NewDecoder($INPUT)
+  - id: astra-weak-crypto
+    languages: [python, javascript, typescript, go]
+    message: Weak cryptographic algorithm used.
+    severity: WARNING
+    metadata: {cwe: ["CWE-327"], category: security}
+    pattern-either:
+      - pattern: hashlib.md5(...)
+      - pattern: hashlib.sha1(...)
+      - pattern: crypto.createHash("md5")
+      - pattern: crypto.createHash("sha1")
+      - pattern: md5.New()
+      - pattern: sha1.New()
+  - id: astra-insecure-auth
+    languages: [python, javascript, typescript, go]
+    message: Potentially insecure authentication configuration.
+    severity: WARNING
+    metadata: {cwe: ["CWE-287"], category: security}
+    pattern-either:
+      - pattern: 'jwt.decode($TOKEN, ..., options={"verify_signature": False}, ...)'
+      - pattern: 'jwt.verify($TOKEN, $KEY, {algorithms: ["none"]}, ...)'
+      - pattern: bcrypt.hashpw($PASSWORD, bcrypt.gensalt(rounds=$N))
+  - id: astra-missing-authorization
+    languages: [python, javascript, typescript, go]
+    message: Review authorization checks before serving this sensitive operation.
+    severity: WARNING
+    metadata: {cwe: ["CWE-862"], category: security}
+    pattern-either:
+      - pattern: app.delete("/$PATH", $HANDLER)
+      - pattern: app.post("/$PATH", $HANDLER)
+      - pattern: router.delete("/$PATH", $HANDLER)
+  - id: astra-unsafe-file-operation
+    languages: [python, javascript, typescript, go]
+    message: Potentially unsafe file operation; validate paths and use safe permissions.
+    severity: WARNING
+    metadata: {cwe: ["CWE-73"], category: security}
+    pattern-either:
+      - pattern: os.chmod($PATH, 0o777)
+      - pattern: fs.writeFile($PATH, $DATA, ...)
+      - pattern: os.WriteFile($PATH, $DATA, 0777)
+  - id: astra-dynamic-execution
+    languages: [python, javascript, typescript, go]
+    message: Dynamic code execution requires careful validation of the input.
+    severity: ERROR
+    metadata: {cwe: ["CWE-95"], category: security}
+    pattern-either:
+      - pattern: eval($INPUT)
+      - pattern: exec($INPUT)
+      - pattern: new Function($INPUT)
+      - pattern: vm.runInContext($INPUT, ...)
