@@ -3,4 +3,8 @@ backend/__pycache__/
 backend/app/__pycache__/
 backend/tests/__pycache__/
 backend/data/
+.env
+.env.*
+!.env.example
+data/
 *.py[cod]
