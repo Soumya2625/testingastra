@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -24,6 +25,8 @@ from .repositories import RepositoryError, fetch_repository, normalize_repositor
 from .rules import SEVERITY_ORDER
 from .scanners import run_scanner
 from .security import redact_text, sanitize_for_ai
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 API_KEY = os.getenv("ASTRA_API_KEY", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")

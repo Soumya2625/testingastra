@@ -14,6 +14,9 @@ resource limits.
 - Set `ASTRA_API_KEY` to a long random value before starting the API.
 - Optionally set `GEMINI_API_KEY` and `GEMINI_MODEL` (defaults to
   `gemini-2.5-flash`). Gemini is never sent raw secret values.
+- For local testing, copy `.env.example` to `.env` in the repository root and
+  replace the placeholders. `.env` is loaded by the backend and is ignored by
+  Git; never commit or share it.
 - Optionally set `ASTRA_DB_PATH` (defaults to `backend/data/astra.sqlite3`) and
   `SCANNER_TIMEOUT_SECONDS` (defaults to 600).
 
@@ -32,13 +35,12 @@ run with memory, CPU, PID, and timeout limits.
 ## Run
 
 ```powershell
+Copy-Item .env.example .env
+# Edit .env locally and replace the example values with your own.
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-$env:ASTRA_API_KEY = "replace-with-a-long-random-value"
-# Optional:
-$env:GEMINI_API_KEY = "your-key"
 uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
